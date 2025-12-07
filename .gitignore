@@ -1,0 +1,69 @@
+# Compilados y binarios
+bin/
+*.o
+*.exe
+*.out
+*.app
+test
+test_auto
+
+# Archivos de depuración
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Directorios de build
+build/
+Debug/
+Release/
+
+# Editor - VSCode
+.vscode/
+*.code-workspace
+
+# Editor - Visual Studio
+.vs/
+*.vcxproj
+*.vcxproj.*
+*.sln
+*.suo
+*.user
+
+# Editor - CLion/JetBrains
+.idea/
+cmake-build-*/
+
+# Editor - Vim/Neovim
+*.swp
+*.swo
+*~
+
+# Editor - Emacs
+*~
+\#*\#
+.\#*
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*.directory
+
+# Archivos temporales
+*.tmp
+*.temp
+*.log
+
+# No ignorar los archivos de resultados template
+!results/analysis.md
+!results/custom_scheme.md
+!results/signals.txt
+

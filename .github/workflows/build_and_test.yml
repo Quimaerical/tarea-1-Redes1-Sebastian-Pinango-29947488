@@ -1,0 +1,26 @@
+name: Compilación y Pruebas Automáticas
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar el repositorio
+        uses: actions/checkout@v3
+
+      - name: Configurar entorno GCC
+        run: sudo apt-get install -y gcc make
+
+      - name: Compilar proyecto
+        run: |
+          mkdir -p results bin
+          gcc -Wall -Werror -std=c11 -o bin/test src/encoding.c src/test_encoding.c
+
+      - name: Ejecutar pruebas automáticas
+        run: ./bin/test
