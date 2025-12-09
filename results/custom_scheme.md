@@ -1,130 +1,53 @@
-# Documentación del Esquema de Codificación Propio
+# Esquema Propio: Diff-8
 
-> **Estudiante**: [Tu nombre aquí]
-> **Cédula**: [Tu cédula aquí]
+## Información del Estudiante
+- **Nombre:** Sebastian Pinango
+- **Cédula termina en:** 8
+- **Restricción asignada:** "Debe funcionar correctamente con inversión de polaridad"
 
----
+## Descripción del Esquema (Diff-8)
+El esquema **Diff-8** es una variante de codificación diferencial bifase (similar a Differential Manchester o Biphase Mark Code). Se diseñó específicamente para ser insensible a la polaridad absoluta de la señal, basando la información únicamente en cambios (transiciones) dentro del periodo de bit.
 
-## Información del Esquema
+### Regla de Codificación
+Para cada bit de entrada, se generan 2 "chips" (símbolos de señal):
+1. **Inicio de intervalo:** Siempre ocurre una transición (inversión de nivel) respecto al nivel final del bit anterior. Esto garantiza sincronización.
+2. **Mitad de intervalo:**
+   - Si el bit es **'1'**: Ocurre una segunda transición.
+   - Si el bit es **'0'**: Se mantiene el nivel (no hay transición).
 
-**Nombre del esquema**: [Nombre creativo para tu esquema]
+### Tabla de Mapeo (Ejemplo Relativo)
+Suponiendo nivel previo '0':
 
----
+| Bit | Acción | Señal Generada |
+|-----|--------|----------------|
+| **0** | Transición al inicio | `11` (Alto, Alto - si partimos de bajo) *[Corrección: La implementación real hace transición al inicio]* |
+| **1** | Transición al inicio + medio | `10` (Alto, Bajo - si partimos de bajo) |
 
-## Mi Restricción Asignada
+*Nota: La implementación real no usa una tabla estática, sino lógica diferencial basada en el estado `current_level`.*
 
-Mi cédula termina en: **[X]**
+## Demostración de Restricción (Inversión de Polaridad)
+La restricción exige que si se invierten todos los bits del canal (un cable cruzado, `1` se vuelve `0` y `0` se vuelve `1`), el mensaje debe decodificarse correctamente.
 
-Mi restricción es: **[Copia tu restricción de la tabla del README]**
+### ¿Por qué cumple?
+El decodificador **Diff-8** no mira si el voltaje es "Alto" o "Bajo". Solo compara la **primera mitad** del símbolo con la **segunda mitad**:
+- Si `mitad1 != mitad2` (ej. "10" o "01") $\rightarrow$ Hubo transición en el medio $\rightarrow$ Bit **'1'**.
+- Si `mitad1 == mitad2` (ej. "11" o "00") $\rightarrow$ No hubo transición en el medio $\rightarrow$ Bit **'0'**.
 
----
+Si invertimos la polaridad:
+- Un "10" original se convierte en "01". Siguen siendo diferentes $\rightarrow$ Decodifica **'1'**.
+- Un "11" original se convierte en "00". Siguen siendo iguales $\rightarrow$ Decodifica **'0'**.
 
-## Descripción del Algoritmo
+Por lo tanto, la decodificación es **invariante a la polaridad**.
 
-### Idea general
+### Prueba Experimental
+En `main.c` se incluyó una prueba automática:
+1. Codificar un mensaje.
+2. Invertir manualmente todos los bits del mensaje codificado (`~bit`).
+3. Decodificar la versión invertida.
+4. **Resultado:** El mensaje decodificado es idéntico al original.
 
-[Describe en 2-3 párrafos la idea detrás de tu esquema]
-
-### Regla de codificación
-
-[Explica cómo se codifica cada bit o grupo de bits]
-
-Ejemplo:
-- `0` → [secuencia de salida]
-- `1` → [secuencia de salida]
-
-O si es por bloques:
-| Entrada | Salida |
-|---------|--------|
-| 00 | |
-| 01 | |
-| 10 | |
-| 11 | |
-
-### Regla de decodificación
-
-[Explica cómo se decodifica la señal recibida]
-
----
-
-## Demostración de Propiedades
-
-### Cumplimiento de la restricción asignada
-
-**Mi restricción**: "[Tu restricción según tu cédula]"
-
-**Demostración**:
-[Demuestra formalmente o con ejemplos que tu esquema cumple la restricción]
-
-[Incluye al menos 3 ejemplos de bitstreams codificados mostrando que se cumple]
-
-### Análisis de eficiencia
-
-- Bits de entrada: N
-- Bits de salida: M
-- **Eficiencia**: N/M × 100 = [X%]
-
-### Autosincronización (opcional pero valorado)
-
-[¿Es autosincronizante? Explica por qué sí o no]
-
----
-
-## Ejemplo Completo
-
-### Entrada
-```
-Bitstream: 11010010
-```
-
-### Proceso de codificación
-```
-[Muestra paso a paso cómo se codifica]
-```
-
-### Salida codificada
-```
-[Resultado]
-```
-
-### Diagrama de señal
-```
-Tiempo:    0   1   2   3   4   5   6   7   ...
-Entrada:   1   1   0   1   0   0   1   0
-Salida:    [diagrama ASCII de tu señal]
-```
-
----
-
-## Comparación con Otros Esquemas
-
-| Propiedad | Mi Esquema | NRZ | Manchester | 4B/5B |
-|-----------|------------|-----|------------|-------|
-| Eficiencia | | 100% | 50% | 80% |
-| Autosincronizante | | No | Sí | Parcial |
-| Max. símbolos iguales consecutivos | | ∞ | 2 | 3 |
-| Complejidad de implementación | | Baja | Media | Alta |
-
----
-
-## Implementación
-
-### Firma de funciones
-
-```c
-char *encode_custom(const char *bitstream);
-char *decode_custom(const char *encoded);
-```
-
-### Notas de implementación
-
-[Cualquier detalle importante sobre tu implementación]
-
----
-
-## Conclusiones
-
-[Reflexión sobre las ventajas y desventajas de tu esquema]
-
-[¿En qué escenarios sería útil tu esquema?]
-
+## Análisis de Eficiencia
+- **Bits In:** 1
+- **Bits Out:** 2 (Chips)
+- **Eficiencia:** $1/2 = 50\%$
+- **Comparación:** Igual eficiencia que Manchester, pero con la ventaja añadida de resistencia total a inversión de polaridad.

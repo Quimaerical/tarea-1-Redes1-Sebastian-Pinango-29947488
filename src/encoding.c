@@ -1,15 +1,23 @@
 #include "encoding.h"
 
+// Helper portable strdup
+char *my_strdup(const char *s) {
+    if (!s) return NULL;
+    char *d = malloc(strlen(s) + 1);
+    if (d) strcpy(d, s);
+    return d;
+}
+
 // --- NRZ (Non-Return to Zero Level) ---
 // Mapeo directo: '1' -> '1' (High), '0' -> '0' (Low)
 char *encode_nrz(const char *bitstream) {
     if (!bitstream) return NULL;
-    return strdup(bitstream); // En NRZ-L la salida es igual a la entrada lógica
+    return my_strdup(bitstream); // En NRZ-L la salida es igual a la entrada lógica
 }
 
 char *decode_nrz(const char *encoded) {
     if (!encoded) return NULL;
-    return strdup(encoded);
+    return my_strdup(encoded);
 }
 
 // --- NRZI (Non-Return to Zero Inverted) ---
@@ -208,4 +216,68 @@ char *decode_custom(const char *encoded) {
     }
     out[len / 2] = '\0';
     return out;
+}
+
+// --- HERRAMIENTAS DE VISUALIZACIÓN Y RUIDO ---
+
+void plot_signal(const char *encoded, const char *filename, const char *label) {
+    if (!encoded) return;
+
+    FILE *f = fopen(filename, "a");
+    if (!f) return;
+
+    fprintf(f, "\n%s\n", label);
+    fprintf(f, "Tiempo: ");
+    int len = strlen(encoded);
+    for (int i = 0; i < len; i++) {
+        fprintf(f, "%4d", i);
+    }
+    fprintf(f, "\nSeñal:  ");
+
+    // Dibujo simple: ALTO para '1', BAJO para '0'
+    for (int i = 0; i < len; i++) {
+        if (encoded[i] == '1') {
+            fprintf(f, "----");
+        } else {
+            fprintf(f, "____");
+        }
+    }
+    fprintf(f, "\n\n");
+    fclose(f);
+}
+
+void add_noise(char *bitstream, double ber) {
+    if (!bitstream) return;
+    int len = strlen(bitstream);
+    
+    // Asumimos srand() ya fue llamado en main()
+    for (int i = 0; i < len; i++) {
+        double r = (double)rand() / (double)RAND_MAX;
+        if (r < ber) {
+            // Invertir bit (Error)
+            bitstream[i] = (bitstream[i] == '0') ? '1' : '0';
+        }
+    }
+}
+
+void add_burst_noise(char *bitstream, double prob_burst) {
+    if (!bitstream) return;
+    int len = strlen(bitstream);
+    double r = (double)rand() / (double)RAND_MAX;
+
+    // Si ocurre ráfaga
+    if (r < prob_burst) {
+        // Longitud de ráfaga aleatoria entre 2 y 5 bits
+        int burst_len = 2 + (rand() % 4); 
+        // Evitar desbordamiento
+        if (burst_len > len) burst_len = len;
+
+        // Posición inicio segura
+        int max_start = len - burst_len;
+        int start_pos = (max_start > 0) ? (rand() % max_start) : 0;
+        
+        for (int i = 0; i < burst_len; i++) {
+             bitstream[start_pos + i] = (bitstream[start_pos + i] == '0') ? '1' : '0';
+        }
+    }
 }

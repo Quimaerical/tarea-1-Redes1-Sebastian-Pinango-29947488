@@ -26,5 +26,7 @@ char *decode_custom(const char *encoded);
 // Herramientas de visualización y ruido
 void plot_signal(const char *encoded, const char *filename, const char *label);
 void add_noise(char *bitstream, double ber);
+void add_burst_noise(char *bitstream, double prob_burst);
+char *my_strdup(const char *s);
 
 #endif
